@@ -6,7 +6,7 @@ import (
 )
 
 type Signal struct {
-	Signaldata float64
+	Signaldata float64 `json:"json"`
 }
 
 func GenerateRandomSignal() float64 { //(length, minValue, maxValue int) []int {

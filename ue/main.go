@@ -10,31 +10,31 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type Ue struct {
-	UeId     int
-	Signal   int
-	length   int
-	minValue int
-	maxValue int
+type Basestation struct {
+	BTNAME       string  `json:"basestationname"`
+	BTID         float64 `json:"basestationID"`
+	Ueconnection Ueconnectiondata
 }
-type Signal struct {
-	Signaldata float64
+
+type Ueconnectiondata struct {
+	Uedatasignal      Uedata
+	Basestationsignal float64 `json:"basestationsignal"`
+	Ping              float64
+}
+type Uedata struct {
+	Uesignal float64 `json:"uesignal"`
 }
 
 func Ueconnection(c *gin.Context) {
-	ue := Ue{
-		UeId:     100000000000,
-		Signal:   50,
-		length:   10,
-		minValue: 0,
-		maxValue: 20,
+	var data Basestation
+	fmt.Println("server data-------->", data)
+	UESignalgenerated := signal.GenerateRandomSignal()
+
+	uesignal := Uedata{
+		Uesignal: UESignalgenerated,
 	}
-	fmt.Println(ue)
-	signal := signal.GenerateRandomSignal()
-	fmt.Println("UE SIGNAL...", signal)
-	// uedata, _ := json.MarshalIndent(ue, "", "")
-	// fmt.Println("uedata :", uedata)
-	jsondata, err := json.Marshal(signal)
+	fmt.Println("uesignal:--------->", uesignal)
+	jsondata, err := json.Marshal(data)
 	if err != nil {
 		fmt.Println(err)
 	}

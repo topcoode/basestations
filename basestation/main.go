@@ -5,76 +5,84 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 type Basestation struct {
-	BTNAME   string `json:"basestationname"`
-	BTID     int    `json:"basestationID"`
-	Signal   int    `json:"signal"`
-	length   int    `json:"length"`
-	minValue int    `json:"minvalue"`
-	maxValue int    `json:"maxvalue"`
+	BTNAME       string  `json:"basestationname"`
+	BTID         float64 `json:"basestationID"`
+	Ueconnection *Ueconnectiondata
 }
-type Signal struct {
-	Signaldata float64
+
+type Ueconnectiondata struct {
+	Uedatasignal      *Uedata
+	Basestationsignal float64 `json:"basestationsignal"`
+	Ping              float64
+}
+type Uedata struct {
+	Uesignal float64 `json:"uesignal"`
 }
 
 func BT(c *gin.Context) {
-	fmt.Println("the value of c: ", c.Request.Body)
+	var data Basestation
+	fmt.Println("client data----->", data)
+	if err := c.ShouldBindJSON(&data); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 	body, _ := ioutil.ReadAll(c.Request.Body)
-	fmt.Println("*******", string(body))
-	var data Signal
-	err := c.ShouldBindJSON(&data)
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println("data.signal-->", data.Signaldata)
-	jsondata, err := json.MarshalIndent(c, "", "")
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println(string(jsondata))
+	var Ping float64 //Produce
+	var Uesignal float64
+	var ServerSignal float64 //produce
+	fmt.Println(ServerSignal)
 	basestation := []Basestation{
 		{
-			BTNAME:   "basestation1",
-			BTID:     0000000000001,
-			Signal:   50,
-			length:   10,
-			minValue: 0,
-			maxValue: 20,
+			BTNAME: "Basestation1",
+			BTID:   0000000000001,
+			Ueconnection: &Ueconnectiondata{
+				Uedatasignal: &Uedata{
+					Uesignal: Uesignal,
+				},
+				Basestationsignal: 100,
+				Ping:              Ping,
+			},
 		},
 		{
-			BTNAME:   "basestation2",
-			BTID:     0000000000001,
-			Signal:   50,
-			length:   10,
-			minValue: 0,
-			maxValue: 20,
-		},
-		{
-			BTNAME:   "basestation3",
-			BTID:     0000000000001,
-			Signal:   50,
-			length:   10,
-			minValue: 0,
-			maxValue: 20,
-		},
-		{
-			BTNAME:   "basestation4",
-			BTID:     0000000000001,
-			Signal:   50,
-			length:   10,
-			minValue: 0,
-			maxValue: 20,
+			BTNAME: "Basestation2",
+			BTID:   0000000000002,
+			Ueconnection: &Ueconnectiondata{
+				Uedatasignal: &Uedata{
+					Uesignal: Uesignal,
+				},
+				Basestationsignal: 100,
+				Ping:              Ping,
+			},
 		},
 	}
+	// fmt.Println("ue signal---->", data.Ueconnection.Uedatasignal.Uesignal)
+	for _, user := range basestation {
 
-	signal.GenerateRandomSignal()
-	basestationdata, _ := json.MarshalIndent(basestation, "", "")
-	fmt.Println(string(basestationdata))
+		//parse json----------------------------------------------->
+		var data Basestation
+		if err := json.Unmarshal(body, &data); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"message": "Data received successfully"})
+		//server signal---------->
+		serversignal := signal.GenerateRandomSignal()
+		fmt.Println("SERVER SIGNAL:", serversignal)
+		// ue signal------------>
+		user.Ueconnection.Ping = serversignal - user.Ueconnection.Basestationsignal
+		Ping = user.Ueconnection.Ping
+		Uesignal = user.Ueconnection.Uedatasignal.Uesignal
+		ServerSignal = serversignal
+		fmt.Println("user--------->", user)
+	}
 }
+
 func main() {
 	router := gin.Default()
 	router.POST("/basestation", BT)
